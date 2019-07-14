@@ -14,9 +14,20 @@ from functools import reduce
 # In[2]:
 
 
+def bold_significance(val):
+    if type(val)==str:
+        val = float(val.replace('<', ''))
+    fontweight = 'bold' if val<0.05 else 'normal'
+    return 'font-weight: {}'.format(fontweight)
+
+
+# In[3]:
+
+
 # Load in data
 bb_data = pd.read_csv('bbdata_area.csv')
 bb_data.set_index('pat_id',inplace=True)
+bb_data = bb_data[bb_data.index!=15]
 
 # Calculate effective diameter from area
 bb_data['effective_diameter'] = bb_data['area'].apply(lambda x: np.sqrt((4 * x)/np.pi))
@@ -36,19 +47,27 @@ results_data = pd.concat([bb_data, results_data_all])
 
 
 results_data.rename(columns={
-                                    'bbh': 'BBH (mm)', 
-                                    'curve':'Curvature (mm-1)', 
-                                    'effective_diameter':'Diameter (mm)', 
-                                    'percent_oversizing':'Graft Oversizing (%)',
-                                    'bba': 'BBA (deg)',
-                                    'bbl': 'BBL (mm)',
-                                    'graft': 'Proximal Graft Diameter (mm)',
-                                    'area': 'Aortic Area (mm2)'},inplace=True)
+                                'bbh': 'BBH (mm)', 
+                                'curve':'Curvature (mm-1)', 
+                                'effective_diameter':'Diameter (mm)', 
+                                'percent_oversizing':'Graft Oversizing (%)',
+                                'bba': 'BBA (deg)',
+                                'bbl': 'BBL (mm)',
+                                'graft': 'Proximal Graft Diameter (mm)',
+                                'area': 'Aortic Area (mm2)'
+    
+                             }, inplace=True)
 results_data_output = results_data.groupby('group').agg([np.mean, np.std]).reset_index()
 results_data_output
 
 
-# In[3]:
+# In[28]:
+
+
+bb_data
+
+
+# In[29]:
 
 
 results_data_output
@@ -75,7 +94,7 @@ results_data_output.fillna('',inplace=True)
     
 results_data_output = results_data_output.transpose()
 results_data_output = results_data_output.reindex(sorted(results_data_output.index.values))
-display(results_data_output)
+results_data_output.style.applymap(bold_significance, subset='p-value')
 #writer = pd.ExcelWriter("/Users/maxfrohlich/Dropbox/Stanford-SJSU-Manuscript/Manuscript/Figures/bb_groups_demo.xlsx")
 #results_data_output.to_excel(writer, 'sheet1')
 
@@ -87,7 +106,7 @@ bb_data
 stats.pearsonr(bb_data['bbh'], bb_data['bbl'])
 
 
-# In[10]:
+# In[7]:
 
 
 results_data_corr = results_data[results_data.group == 'All']
@@ -113,64 +132,9 @@ bbal_corr = pd.concat({'BBL Correlation':bbl_corr.sort_index(),
                        'BBH Correlation': bbh_corr.sort_index()})
 
 #bbal_corr.to_csv('/Users/maxfrohlich/Dropbox/figure_1_raw/bba_bbl.csv')
-def bold_significance(val):
-    fontweight = 'bold' if val<0.05 else 'normal'
-    return 'font-weight: {}'.format(fontweight)
+
 
 bbal_corr.style.applymap(bold_significance, subset='p-value')
-
-
-# In[6]:
-
-
-bbal_corr #.sort_index()
-
-
-# In[7]:
-
-
-sorted(bbal_corr.loc['BBA Correlation'].index.values)
-
-
-# In[8]:
-
-
-zones = """0
-1
-1
-3
-2
-2
-3
-1
-1
-0
-1
-2
-0
-0
-1
-2
-4
-1
-3
-1
-3""".split('\n')
-zones = [int(i) for i in zones]
-zones
-
-
-# In[9]:
-
-
-bb_data['zones'] = [0, 1, 1, 3, 2, 2, 3, 1, 1, 0, 1, 2, 0, 0, 1, 2, 4, 1, 3, 1, 3]
-bb_data.groupby('group')['zones'].value_counts()
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
