@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[42]:
+# In[21]:
 
 
 import pandas as pd
@@ -12,7 +12,7 @@ import seaborn as sns
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[177]:
+# In[22]:
 
 
 # Read in zones and bird-beak data.
@@ -21,12 +21,12 @@ zones = zones.set_index('pat_num')
 zones
 
 
-# In[93]:
+# In[24]:
 
 
 # Test
-statistic, p = stats.mannwhitneyu(x=zones['zone'], y=zones['bbh'])
-print("Stat: {} P-Value: {:.3f}".format(statistic, p))
+statistic, p = stats.mannwhitneyu(x=zones['zone'], y=zones['group_numeric'])
+print("Stat: {} P-Value: {:.0e}".format(statistic, p))
 
 # Group
 zone_agg = zones.groupby('group').agg({'aortic zone': 'value_counts'}).sort_index().rename(columns={'aortic zone': 'count'})
@@ -40,7 +40,7 @@ ax.set_ylim(0, 80)
 ax.set_axisbelow(True)
 
 
-# In[298]:
+# In[48]:
 
 
 
@@ -76,7 +76,7 @@ class ZonePlot:
         sns.boxplot(ax=self.ax, palette=sns.color_palette("cividis", 3), **kwargs)
         self.ax.set_ylabel('BBH (mm)')
         self.ax.set_xlabel('Aortic Landing Zones')
-        self.ax.set_xticklabels(['Zone-1', 'Zone-2', 'Zone-3'])
+        self.ax.set_xticklabels(['Zone-2', 'Zone-3', 'Zone-4'])
         
     def swarm_plot(self, **kwargs):
         sns.swarmplot(**kwargs)
@@ -122,27 +122,66 @@ class ZonePlot:
     def main_plot(self, save=None):
         self._agg_data()
         self._make_fig(2,1, (5,7))
+        colors = sns.color_palette("cividis", 6)
+        colors = [(colors[i], colors[i+2], colors[i+4]) for i in range(0, 2)]
         self.box_plot(x='aortic zone',y='bbh',data=self.data, linewidth=2)
         self.annote_n()
         self.annote_median()
         self._next_ax()
-        self.barplot()
+        self.barplot(color=colors)
         #plt.tight_layout()
         #self.swarm_plot(x='aortic zone',y='bbh',data=self.data, color='r', marker='o', ax=self.ax)
         #self.patch()
         if save:
             plt.savefig(save, dpi=400, bbox_inches='tight')
             plt.show()
+    def main_plot2(self, save=None):
+        self._agg_data()
+        self._make_fig(1,1, (5,3.5))
+        self.box_plot(x='aortic zone',y='bbh',data=self.data, linewidth=2)
+        self.annote_n()
+        self.annote_median()
+        #plt.tight_layout()
+        self.swarm_plot(x='aortic zone',y='bbh',data=self.data, color='r', marker='o', ax=self.ax)
+        #self.patch()
+        if save:
+            plt.savefig(save, dpi=400, bbox_inches='tight')
+            plt.show()
+    def main_plot3(self, save=None):
+        self._agg_data()
+        self._make_fig(1,1, (5,3.5))
+        self.barplot(linewidth=2, color=sns.color_palette('cividis',2))
+        self.annote_n()
+        #self.annote_median()
+        #plt.tight_layout()
+        #self.swarm_plot(x='aortic zone',y='bbh',data=self.data, color='r', marker='o', ax=self.ax)
+        #self.patch()
+        self.ax.legend(['BBG', 'NBBG'])
+        if save:
+            plt.savefig(save, dpi=400, bbox_inches='tight')
+            plt.show()
     
     def barplot(self, **kwargs):
-        colors = sns.color_palette("cividis", 6)
-        colors = [(colors[i], colors[i+2], colors[i+4]) for i in range(0, 2)]
-        self.data_agg_counts.plot.bar(ax=self.ax, colors=colors, legend=False)
+        
+        self.data_agg_counts.plot.bar(ax=self.ax, **kwargs)
         self.ax.set_ylabel('BBG vs NBBG Count')
         self.ax.set_xlabel('Aortic Landing Zones')
-        self.ax.set_xticklabels(['BBG vs NBBG\nZone-2','BBG vs NBBG\nZone-3', 'BBG vs NBBG\nZone-4'], rotation=0)
+        #self.ax.set_xticklabels(['BBG vs NBBG\nZone-2','BBG vs NBBG\nZone-3', 'BBG vs NBBG\nZone-4'], rotation=0)
+        self.ax.set_xticklabels(['Zone 2','Zone 3', 'Zone 4'], rotation=0)
         
 ZonePlot(zones).main_plot('zones_result_fig.png')
 
         
+
+
+# In[29]:
+
+
+ZonePlot(zones).main_plot2('zone_result_fig2.png')
+
+
+# In[49]:
+
+
+ZonePlot(zones).main_plot3('zone_result_fig3.png')
 
