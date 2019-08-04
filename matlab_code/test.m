@@ -1,4 +1,5 @@
-clear all
+clear 
 close all
 
+%Johan was here 
 
